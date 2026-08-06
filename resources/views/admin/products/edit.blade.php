@@ -201,9 +201,23 @@
                                     </select>
                                 </div>
                             </div>
-                        </div> 
+                        </div>
                         <div class="card mb-3">
-                            <div class="card-body">	
+                            <div class="card-body">
+                                <h2 class="h4 mb-3">Site collection</h2>
+                                <div class="mb-3">
+                                    <label for="collection">Collection</label>
+                                    <select name="collection" id="collection" class="form-control">
+                                        <option value="">Select a Collection</option>
+                                        <option {{ ($product->collection == 'party-wear') ? 'selected' : '' }} value="party-wear">Party Wear</option>
+                                        <option {{ ($product->collection == 'casual-wear') ? 'selected' : '' }} value="casual-wear">Casual Wear</option>
+                                    </select>
+                                    <p class="error"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mb-3">
+                            <div class="card-body">
                                 <h2 class="h4 mb-3">Product brand</h2>
                                 <div class="mb-3">
                                     <select name="brand" id="brand" class="form-control">

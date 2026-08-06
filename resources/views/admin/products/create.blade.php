@@ -173,13 +173,27 @@
                                 <div class="mb-3">
                                     <label for="category">Sub category</label>
                                     <select name="sub_category" id="sub_category" class="form-control">
-                                        <option value="">Select a Sub Category</option>   
+                                        <option value="">Select a Sub Category</option>
                                     </select>
                                 </div>
                             </div>
-                        </div> 
+                        </div>
                         <div class="card mb-3">
-                            <div class="card-body">	
+                            <div class="card-body">
+                                <h2 class="h4 mb-3">Site collection</h2>
+                                <div class="mb-3">
+                                    <label for="collection">Collection</label>
+                                    <select name="collection" id="collection" class="form-control">
+                                        <option value="">Select a Collection</option>
+                                        <option value="party-wear">Party Wear</option>
+                                        <option value="casual-wear">Casual Wear</option>
+                                    </select>
+                                    <p class="error"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mb-3">
+                            <div class="card-body">
                                 <h2 class="h4 mb-3">Product brand</h2>
                                 <div class="mb-3">
                                     <select name="brand" id="brand" class="form-control">

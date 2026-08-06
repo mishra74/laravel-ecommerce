@@ -62,6 +62,7 @@ class ProductController extends Controller
             'sku' => 'required|unique:products',
             'track_qty' => 'required|in:Yes,No',
             'category' => 'required|numeric',
+            'collection' => 'required|in:party-wear,casual-wear',
             'is_featured' => 'required|in:Yes,No',
         ];
 
@@ -88,6 +89,7 @@ class ProductController extends Controller
             $product->qty = $request->qty;
             $product->status = $request->status;
             $product->category_id = $request->category;
+            $product->collection = $request->collection;
             $product->sub_category_id = $request->sub_category;
             $product->brand_id = $request->brand;
             $product->is_featured = $request->is_featured;
@@ -197,6 +199,7 @@ class ProductController extends Controller
             'sku' => 'required|unique:products,sku,'.$product->id.',id',
             'track_qty' => 'required|in:Yes,No',
             'category' => 'required|numeric',
+            'collection' => 'required|in:party-wear,casual-wear',
             'is_featured' => 'required|in:Yes,No',
         ];
 
@@ -222,6 +225,7 @@ class ProductController extends Controller
             $product->qty = $request->qty;
             $product->status = $request->status;
             $product->category_id = $request->category;
+            $product->collection = $request->collection;
             $product->sub_category_id = $request->sub_category;
             $product->brand_id = $request->brand;
             $product->is_featured = $request->is_featured;

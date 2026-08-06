@@ -9,9 +9,6 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    /** Party Wear category id, matching the frontend's existing collection() mapping in src/lib/api.ts. */
-    const PARTY_WEAR_CATEGORY_ID = 24;
-
     private function baseQuery()
     {
         return Product::with('product_images')
@@ -34,11 +31,7 @@ class ProductController extends Controller
         $query = $this->baseQuery();
 
         if ($request->filled('collection')) {
-            if ($request->collection === 'party-wear') {
-                $query->where('category_id', self::PARTY_WEAR_CATEGORY_ID);
-            } elseif ($request->collection === 'casual-wear') {
-                $query->where('category_id', '!=', self::PARTY_WEAR_CATEGORY_ID);
-            }
+            $query->where('collection', $request->collection);
         }
 
         if ($request->filled('category_id')) {
@@ -76,7 +69,7 @@ class ProductController extends Controller
         }
 
         $similar = $this->baseQuery()
-            ->where('category_id', $product->category_id)
+            ->where('collection', $product->collection)
             ->where('id', '!=', $product->id)
             ->take(4)
             ->get();
