@@ -17,10 +17,18 @@ use App\Http\Controllers\admin\ShippingController;
 use App\Http\Controllers\admin\SubCategoryController;
 use App\Http\Controllers\admin\TempImagesController;
 use App\Http\Controllers\admin\UserController;
+use App\Http\Controllers\admin\VendorController as AdminVendorController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\FrontController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\vendor\HomeController as VendorHomeController;
+use App\Http\Controllers\vendor\OrderController as VendorOrderController;
+use App\Http\Controllers\vendor\ProductController as VendorProductController;
+use App\Http\Controllers\vendor\ProductImageController as VendorProductImageController;
+use App\Http\Controllers\vendor\ProfileController as VendorProfileController;
+use App\Http\Controllers\vendor\TempImagesController as VendorTempImagesController;
+use App\Http\Controllers\vendor\VendorLoginController;
 use Illuminate\Http\Request;
 
 /*
@@ -185,6 +193,14 @@ Route::group(['prefix' => 'admin'],function(){
         Route::put('/users/{user}',[UserController::class,'update'])->name('users.update');
         Route::delete('/users/{user}',[UserController::class,'destroy'])->name('users.delete');
 
+        // Vendor Management Routes
+        Route::get('/vendors',[AdminVendorController::class,'index'])->name('admin.vendors.index');
+        Route::get('/vendors/create',[AdminVendorController::class,'create'])->name('admin.vendors.create');
+        Route::post('/vendors',[AdminVendorController::class,'store'])->name('admin.vendors.store');
+        Route::get('/vendors/{vendor}/edit',[AdminVendorController::class,'edit'])->name('admin.vendors.edit');
+        Route::put('/vendors/{vendor}',[AdminVendorController::class,'update'])->name('admin.vendors.update');
+        Route::delete('/vendors/{vendor}',[AdminVendorController::class,'destroy'])->name('admin.vendors.delete');
+
         // Page Routes
         Route::get('/pages',[PageController::class,'index'])->name('pages.index');
         Route::get('/pages/create',[PageController::class,'create'])->name('pages.create');
@@ -214,7 +230,58 @@ Route::group(['prefix' => 'admin'],function(){
 
     });
 
+});
 
+Route::group(['prefix' => 'vendor'],function(){
 
+    Route::group(['middleware' => 'vendor.guest'],function(){
+
+        Route::get('/login',[VendorLoginController::class,'index'])->name('vendor.login');
+        Route::post('/authenticate',[VendorLoginController::class,'authenticate'])->name('vendor.authenticate');
+
+    });
+
+    Route::group(['middleware' => 'vendor.auth'],function(){
+
+        Route::get('/dashboard',[VendorHomeController::class,'index'])->name('vendor.dashboard');
+        Route::get('/logout',[VendorHomeController::class,'logout'])->name('vendor.logout');
+
+        // Product Routes
+        Route::get('/products',[VendorProductController::class,'index'])->name('vendor.products.index');
+        Route::get('/products/create',[VendorProductController::class,'create'])->name('vendor.products.create');
+        Route::post('/products',[VendorProductController::class,'store'])->name('vendor.products.store');
+        Route::get('/products/{product}/edit',[VendorProductController::class,'edit'])->name('vendor.products.edit');
+        Route::put('/products/{product}',[VendorProductController::class,'update'])->name('vendor.products.update');
+        Route::delete('/products/{product}',[VendorProductController::class,'destroy'])->name('vendor.products.delete');
+        Route::get('/get-products',[VendorProductController::class,'getProducts'])->name('vendor.products.getProducts');
+        Route::get('/product-subcategories',[ProductSubCategoryController::class,'index'])->name('vendor.product-subcategories.index');
+
+        Route::post('/product-images/update',[VendorProductImageController::class,'update'])->name('vendor.product-images.update');
+        Route::delete('/product-images',[VendorProductImageController::class,'destroy'])->name('vendor.product-images.destroy');
+
+        Route::post('/upload-temp-image',[VendorTempImagesController::class,'create'])->name('vendor.temp-images.create');
+
+        // Order Routes (read-only, scoped to vendor's own products)
+        Route::get('/orders',[VendorOrderController::class,'index'])->name('vendor.orders.index');
+        Route::get('/orders/{id}',[VendorOrderController::class,'detail'])->name('vendor.orders.detail');
+
+        // Profile Routes
+        Route::get('/profile',[VendorProfileController::class,'edit'])->name('vendor.profile');
+        Route::post('/update-profile',[VendorProfileController::class,'update'])->name('vendor.updateProfile');
+        Route::get('/change-password',[VendorProfileController::class,'showChangePasswordForm'])->name('vendor.showChangePasswordForm');
+        Route::post('/process-change-password',[VendorProfileController::class,'processChangePassword'])->name('vendor.processChangePassword');
+
+        Route::get('/getSlug',function(Request $request){
+            $slug = '';
+            if (!empty($request->title)) {
+                $slug = Str::slug($request->title);
+            }
+            return response()->json([
+                'status' => true,
+                'slug' => $slug
+            ]);
+        })->name('vendor.getSlug');
+
+    });
 
 });

@@ -1,15 +1,15 @@
-@extends('admin.layouts.app')
+@extends('vendor.layouts.app')
 
 @section('content')
 <!-- Content Header (Page header) -->
-<section class="content-header">					
+<section class="content-header">
     <div class="container-fluid my-2">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1>Products</h1>
+                <h1>My Products</h1>
             </div>
             <div class="col-sm-6 text-right">
-                <a href="{{ route('products.create') }}" class="btn btn-primary">New Product</a>
+                <a href="{{ route('vendor.products.create') }}" class="btn btn-primary">New Product</a>
             </div>
         </div>
     </div>
@@ -24,17 +24,10 @@
             <form action="" method="get">
                 <div class="card-header">
                     <div class="card-title">
-                        <button type="button" onclick="window.location.href='{{ route("products.index") }}'" class="btn btn-default btn-sm">Reset</button>
+                        <button type="button" onclick="window.location.href='{{ route("vendor.products.index") }}'" class="btn btn-default btn-sm">Reset</button>
                     </div>
-    
-                    <div class="card-tools d-flex">
-                        <select name="vendor_id" onchange="this.form.submit()" class="form-control mr-2" style="width: 200px;">
-                            <option value="">All Vendors</option>
-                            <option value="0" {{ (Request::get('vendor_id') === '0') ? 'selected' : '' }}>Platform (Unassigned)</option>
-                            @foreach ($vendors as $vendor)
-                            <option value="{{ $vendor->id }}" {{ (Request::get('vendor_id') == $vendor->id) ? 'selected' : '' }}>{{ $vendor->name }}</option>
-                            @endforeach
-                        </select>
+
+                    <div class="card-tools">
                         <div class="input-group input-group" style="width: 250px;">
                             <input value="{{ Request::get('keyword') }}" type="text" name="keyword" class="form-control float-right" placeholder="Search">
 
@@ -47,14 +40,13 @@
                     </div>
                 </div>
             </form>
-            <div class="card-body table-responsive p-0">								
+            <div class="card-body table-responsive p-0">
                 <table class="table table-hover text-nowrap">
                     <thead>
                         <tr>
                             <th width="60">ID</th>
                             <th width="80"></th>
                             <th>Product</th>
-                            <th>Vendor</th>
                             <th>Price</th>
                             <th>Qty</th>
                             <th>SKU</th>
@@ -72,18 +64,17 @@
                                 <td>{{ $product->id }}</td>
                                 <td>
                                     @if (!empty($productImage->image))
-                                    <img src="{{ asset('uploads/product/small/'.$productImage->image) }}" class="img-thumbnail" width="50" /> 
+                                    <img src="{{ asset('uploads/product/small/'.$productImage->image) }}" class="img-thumbnail" width="50" />
                                     @else
                                     <img src="{{ asset('admin-assets/img/default-150x150.png') }}" class="img-thumbnail" width="50" />
                                     @endif
-                                    
-                                
+
+
                                 </td>
                                 <td><a href="#">{{ $product->title }}</a></td>
-                                <td>{{ $product->vendor->name ?? 'Platform' }}</td>
                                 <td>₹{{ $product->price }}</td>
                                 <td>{{ $product->qty }} left in Stock</td>
-                                <td>{{ $product->sku }}</td>											
+                                <td>{{ $product->sku }}</td>
                                 <td>
                                     @if ($product->status == 1)
                                     <svg class="text-success-500 h-6 w-6 text-success" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
@@ -93,10 +84,10 @@
                                     <svg class="text-danger h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
-                                    @endif                                    
+                                    @endif
                                 </td>
                                 <td>
-                                    <a href="{{ route('products.edit',$product->id) }}">
+                                    <a href="{{ route('vendor.products.edit',$product->id) }}">
                                         <svg class="filament-link-icon w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                             <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
                                         </svg>
@@ -114,20 +105,13 @@
                                 <td>Records Not Found</td>
                             </tr>
                         @endif
-                        
-                        
+
+
                     </tbody>
-                </table>										
+                </table>
             </div>
             <div class="card-footer clearfix">
                 {{ $products->links() }}
-                {{-- <ul class="pagination pagination m-0 float-right">
-                    <li class="page-item"><a class="page-link" href="#">«</a></li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#">»</a></li>
-                </ul> --}}
             </div>
         </div>
     </div>
@@ -139,9 +123,9 @@
 @section('customJs')
 <script>
     function deleteProduct(id){
-        var url = '{{ route("products.delete","ID") }}';
+        var url = '{{ route("vendor.products.delete","ID") }}';
         var newUrl = url.replace("ID",id)
-        
+
         if (confirm("Are you sure you want to delete")){
             $.ajax({
                 url: newUrl,
@@ -150,9 +134,9 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response["status"] == true) {
-                        window.location.href="{{ route('products.index') }}";
+                        window.location.href="{{ route('vendor.products.index') }}";
                     } else {
-                        window.location.href="{{ route('products.index') }}";
+                        window.location.href="{{ route('vendor.products.index') }}";
                     }
                 }
             });

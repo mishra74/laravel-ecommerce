@@ -19,12 +19,14 @@ class FrontController extends Controller
         $products = Product::where('is_featured','Yes')
                         ->orderBy('id','DESC')
                         ->take(8)
-                        ->where('status',1)->get();
+                        ->where('status',1)
+                        ->vendorActive()->get();
 
         $data['featuredProducts'] = $products;
 
         $latestProducts = Product::orderBy('id','DESC')
                             ->where('status',1)
+                            ->vendorActive()
                             ->take(8)->get();
 
         $data['latestProducts'] = $latestProducts;

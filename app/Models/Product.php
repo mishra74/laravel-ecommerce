@@ -12,4 +12,17 @@ class Product extends Model
     public function product_images() {
         return $this->hasMany(ProductImage::class);
     }
+
+    public function vendor() {
+        return $this->belongsTo(User::class, 'vendor_id');
+    }
+
+    public function scopeVendorActive($query) {
+        return $query->where(function ($q) {
+            $q->whereNull('vendor_id')
+              ->orWhereHas('vendor', function ($vendorQuery) {
+                  $vendorQuery->where('status', User::STATUS_ACTIVE);
+              });
+        });
+    }
 }

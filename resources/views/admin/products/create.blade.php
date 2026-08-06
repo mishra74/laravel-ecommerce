@@ -194,17 +194,31 @@
                             </div>
                         </div> 
                         <div class="card mb-3">
-                            <div class="card-body">	
+                            <div class="card-body">
                                 <h2 class="h4 mb-3">Featured product</h2>
                                 <div class="mb-3">
                                     <select name="is_featured" id="is_featured" class="form-control">
                                         <option value="No">No</option>
-                                        <option value="Yes">Yes</option>                                                
+                                        <option value="Yes">Yes</option>
                                     </select>
                                     <p class="error"></p>
                                 </div>
                             </div>
-                        </div>                                 
+                        </div>
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h2 class="h4 mb-3">Vendor</h2>
+                                <div class="mb-3">
+                                    <select name="vendor_id" id="vendor_id" class="form-control">
+                                        <option value="">Platform (Unassigned)</option>
+                                        @foreach ($vendors as $vendor)
+                                        <option value="{{ $vendor->id }}">{{ $vendor->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="error"></p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 

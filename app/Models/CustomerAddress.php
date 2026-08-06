@@ -9,5 +9,14 @@ class CustomerAddress extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id','first_name','last_name','email','mobile','country_id','address','apartment','state','city','zip'];
+    protected $fillable = ['user_id','label','first_name','last_name','email','mobile','country_id','address','apartment','state','city','zip','is_default'];
+
+    protected $casts = [
+        'is_default' => 'boolean',
+    ];
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
 }

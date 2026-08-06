@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\admin;
+namespace App\Http\Controllers\vendor;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
@@ -9,8 +9,8 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\SubCategory;
 use App\Models\TempImage;
-use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Image;
@@ -20,25 +20,18 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $products = Product::latest('id')->with('product_images','vendor');
+        $vendorId = Auth::guard('vendor')->id();
+
+        $products = Product::where('vendor_id',$vendorId)->latest('id')->with('product_images');
 
         if ($request->get('keyword') != "") {
             $products = $products->where('title','like','%'.$request->keyword.'%');
         }
 
-        if ($request->get('vendor_id') != "") {
-            if ($request->get('vendor_id') == '0') {
-                $products = $products->whereNull('vendor_id');
-            } else {
-                $products = $products->where('vendor_id',$request->get('vendor_id'));
-            }
-        }
-
         $products = $products->paginate();
-        //dd($products);
+
         $data['products'] = $products;
-        $data['vendors'] = User::where('role',User::ROLE_VENDOR)->orderBy('name','ASC')->get();
-        return view('admin.products.list',$data);
+        return view('vendor.products.list',$data);
     }
 
     public function create() {
@@ -47,14 +40,11 @@ class ProductController extends Controller
         $brands = Brand::orderBy('name','ASC')->get();
         $data['categories'] = $categories;
         $data['brands'] = $brands;
-        $data['vendors'] = User::where('role',User::ROLE_VENDOR)->orderBy('name','ASC')->get();
-        return view('admin.products.create', $data);
+        return view('vendor.products.create', $data);
     }
 
     public function store(Request $request) {
 
-        // dd($request->image_array);
-        // exit();
         $rules = [
             'title' => 'required',
             'slug' => 'required|unique:products',
@@ -76,7 +66,7 @@ class ProductController extends Controller
         if ($validator->passes()) {
 
             $product = new Product;
-            $product->vendor_id = $request->vendor_id ?: null;
+            $product->vendor_id = Auth::guard('vendor')->id();
             $product->title = $request->title;
             $product->slug = $request->slug;
             $product->description = $request->description;
@@ -113,7 +103,7 @@ class ProductController extends Controller
                     $imageName = $product->id.'-'.$productImage->id.'-'.time().'.'.$ext;
                     $productImage->image = $imageName;
                     $productImage->save();
-                    
+
                     // Generate Product Thumbnails
 
                     // Large Image
@@ -155,11 +145,11 @@ class ProductController extends Controller
     {
         $product = Product::find($id);
 
-        if (empty($product)) {
-            return redirect()->route('products.index')->with('error','Product not found');
+        if (empty($product) || $product->vendor_id != Auth::guard('vendor')->id()) {
+            abort(403);
         }
 
-        // Fetch Product Images 
+        // Fetch Product Images
         $productImages = ProductImage::where('product_id',$product->id)->get();
 
         $subCategories = SubCategory::where('category_id',$product->category_id)->get();
@@ -171,7 +161,7 @@ class ProductController extends Controller
             $relatedProducts = Product::whereIn('id',$productArray)->with('product_images')->get();
         }
 
-        
+
         $data = [];
         $categories = Category::orderBy('name','ASC')->get();
         $brands = Brand::orderBy('name','ASC')->get();
@@ -181,14 +171,17 @@ class ProductController extends Controller
         $data['subCategories'] = $subCategories;
         $data['productImages'] = $productImages;
         $data['relatedProducts'] = $relatedProducts;
-        $data['vendors'] = User::where('role',User::ROLE_VENDOR)->orderBy('name','ASC')->get();
 
-        return view('admin.products.edit',$data);
+        return view('vendor.products.edit',$data);
     }
 
     public function update($id, Request $request){
 
         $product = Product::find($id);
+
+        if (empty($product) || $product->vendor_id != Auth::guard('vendor')->id()) {
+            abort(403);
+        }
 
         $rules = [
             'title' => 'required',
@@ -210,7 +203,6 @@ class ProductController extends Controller
 
         if ($validator->passes()) {
 
-            $product->vendor_id = $request->vendor_id ?: null;
             $product->title = $request->title;
             $product->slug = $request->slug;
             $product->description = $request->description;
@@ -231,7 +223,6 @@ class ProductController extends Controller
             $product->save();
 
 
-            // Save Gallery Pics
             $request->session()->flash('success','Product updated successfully');
 
             return response()->json([
@@ -250,12 +241,8 @@ class ProductController extends Controller
     public function destroy($id, Request $request){
         $product = Product::find($id);
 
-        if (empty($product)) {
-            $request->session()->flash('error','Product not found');
-            return response()->json([
-                'status' => false,
-                'notFound' => true
-            ]);
+        if (empty($product) || $product->vendor_id != Auth::guard('vendor')->id()) {
+            abort(403);
         }
 
         $productImages = ProductImage::where('product_id',$id)->get();
@@ -266,7 +253,7 @@ class ProductController extends Controller
                 File::delete(public_path('uploads/product/small/'.$productImage->image));
             }
 
-            ProductImage::where('product_id',$id)->delete();            
+            ProductImage::where('product_id',$id)->delete();
         }
 
         $product->delete();
@@ -277,14 +264,16 @@ class ProductController extends Controller
             'status' => true,
             'message' => 'Product deleted successfully'
         ]);
-      
+
     }
 
     public function getProducts(Request $request){
 
+        $vendorId = Auth::guard('vendor')->id();
+
         $tempProduct = [];
         if ($request->term != "") {
-            $products = Product::where('title','like','%'.$request->term.'%')->get();
+            $products = Product::where('vendor_id',$vendorId)->where('title','like','%'.$request->term.'%')->get();
 
 
             if ($products != null) {

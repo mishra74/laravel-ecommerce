@@ -70,6 +70,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="{{ route('admin.vendors.index') }}" class="nav-link">
+                        <i class="nav-icon  fas fa-store"></i>
+                        <p>Vendors</p>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="{{ route('pages.index') }}" class="nav-link">
                         <i class="nav-icon  far fa-file-alt"></i>
                         <p>Pages</p>

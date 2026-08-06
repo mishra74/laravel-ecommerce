@@ -1,15 +1,15 @@
-@extends('admin.layouts.app')
+@extends('vendor.layouts.app')
 
 @section('content')
     <!-- Content Header (Page header) -->
-    <section class="content-header">					
+    <section class="content-header">
         <div class="container-fluid my-2">
             <div class="row mb-2">
                 <div class="col-sm-6">
                     <h1>Edit Product</h1>
                 </div>
                 <div class="col-sm-6 text-right">
-                    <a href="{{ route('products.index') }}" class="btn btn-primary">Back</a>
+                    <a href="{{ route('vendor.products.index') }}" class="btn btn-primary">Back</a>
                 </div>
             </div>
         </div>
@@ -23,19 +23,19 @@
                 <div class="row">
                     <div class="col-md-8">
                         <div class="card mb-3">
-                            <div class="card-body">								
+                            <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="mb-3">
                                             <label for="title">Title</label>
-                                            <input type="text" name="title" id="title" class="form-control" placeholder="Title" value="{{ $product->title }}">	
+                                            <input type="text" name="title" id="title" class="form-control" placeholder="Title" value="{{ $product->title }}">
                                             <p class="error"></p>
                                         </div>
                                     </div>
                                     <div class="col-md-12">
                                         <div class="mb-3">
                                             <label for="title">Slug</label>
-                                            <input type="text" readonly name="slug" id="slug" class="form-control" placeholder="Slug" value="{{ $product->slug }}">	
+                                            <input type="text" readonly name="slug" id="slug" class="form-control" placeholder="Slug" value="{{ $product->slug }}">
                                             <p class="error"></p>
                                         </div>
                                     </div>
@@ -57,19 +57,19 @@
                                             <textarea name="shipping_returns" id="shipping_returns" cols="30" rows="10" class="summernote" placeholder="Description">{{ $product->shipping_returns }}</textarea>
                                         </div>
                                     </div>
-                                                                                
+
                                 </div>
-                            </div>	                                                                      
+                            </div>
                         </div>
                         <div class="card mb-3">
                             <div class="card-body">
-                                <h2 class="h4 mb-3">Media</h2>								
+                                <h2 class="h4 mb-3">Media</h2>
                                 <div id="image" class="dropzone dz-clickable">
-                                    <div class="dz-message needsclick">    
-                                        <br>Drop files here or click to upload.<br><br>                                            
+                                    <div class="dz-message needsclick">
+                                        <br>Drop files here or click to upload.<br><br>
                                     </div>
                                 </div>
-                            </div>	                                                                      
+                            </div>
                         </div>
                         <div class="row" id="product-gallery">
                             @if ($productImages->isNotEmpty())
@@ -88,13 +88,13 @@
                         </div>
                         <div class="card mb-3">
                             <div class="card-body">
-                                <h2 class="h4 mb-3">Pricing</h2>								
+                                <h2 class="h4 mb-3">Pricing</h2>
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="mb-3">
                                             <label for="price">Price</label>
                                             <input type="text" name="price" id="price" class="form-control" placeholder="Price" value="{{ $product->price }}">
-                                            <p class="error"></p>	
+                                            <p class="error"></p>
                                         </div>
                                     </div>
                                     <div class="col-md-12">
@@ -103,30 +103,30 @@
                                             <input type="text" name="compare_price" id="compare_price" class="form-control" placeholder="Compare Price" value="{{ $product->compare_price }}">
                                             <p class="text-muted mt-3">
                                                 To show a reduced price, move the product’s original price into Compare at price. Enter a lower value into Price.
-                                            </p>	
+                                            </p>
                                         </div>
-                                    </div>                                            
+                                    </div>
                                 </div>
-                            </div>	                                                                      
+                            </div>
                         </div>
                         <div class="card mb-3">
                             <div class="card-body">
-                                <h2 class="h4 mb-3">Inventory</h2>								
+                                <h2 class="h4 mb-3">Inventory</h2>
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="sku">SKU (Stock Keeping Unit)</label>
-                                            <input type="text" name="sku" id="sku" class="form-control" placeholder="sku" value="{{ $product->sku }}">	
+                                            <input type="text" name="sku" id="sku" class="form-control" placeholder="sku" value="{{ $product->sku }}">
                                             <p class="error"></p>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="barcode">Barcode</label>
-                                            <input type="text" name="barcode" id="barcode" class="form-control" placeholder="Barcode" value="{{ $product->barcode }}">	
+                                            <input type="text" name="barcode" id="barcode" class="form-control" placeholder="Barcode" value="{{ $product->barcode }}">
                                         </div>
-                                    </div>   
-                                    
+                                    </div>
+
                                     <div class="col-md-12">
                                         <div class="mb-3">
                                             <div class="custom-control custom-checkbox">
@@ -138,15 +138,15 @@
                                         </div>
                                         <div class="mb-3">
                                             <input type="number" min="0" name="qty" id="qty" class="form-control" placeholder="Qty" value="{{ $product->qty }}">
-                                            <p class="error"></p>	
+                                            <p class="error"></p>
                                         </div>
-                                    </div>                                         
+                                    </div>
                                 </div>
-                            </div>	                                                                      
+                            </div>
                         </div>
 
                         <div class="card mb-3">
-                            <div class="card-body">	
+                            <div class="card-body">
                                 <h2 class="h4 mb-3">Related Products</h2>
                                 <div class="mb-3">
                                     <select multiple class="related-product w-100" name="related_products[]" id="related_products">
@@ -159,12 +159,12 @@
                                     <p class="error"></p>
                                 </div>
                             </div>
-                        </div>  
+                        </div>
 
                     </div>
                     <div class="col-md-4">
                         <div class="card mb-3">
-                            <div class="card-body">	
+                            <div class="card-body">
                                 <h2 class="h4 mb-3">Product status</h2>
                                 <div class="mb-3">
                                     <select name="status" id="status" class="form-control">
@@ -173,17 +173,17 @@
                                     </select>
                                 </div>
                             </div>
-                        </div> 
+                        </div>
                         <div class="card">
-                            <div class="card-body">	
+                            <div class="card-body">
                                 <h2 class="h4  mb-3">Product category</h2>
                                 <div class="mb-3">
                                     <label for="category">Category</label>
                                     <select name="category" id="category" class="form-control">
-                                        <option value="">Select a Category</option>                                      
+                                        <option value="">Select a Category</option>
                                     @if ($categories->isNotEmpty())
                                         @foreach ($categories as $category)
-                                        <option {{ ($product->category_id == $category->id) ? 'selected' : '' }} value="{{ $category->id }}">{{ $category->name }}</option>                                        
+                                        <option {{ ($product->category_id == $category->id) ? 'selected' : '' }} value="{{ $category->id }}">{{ $category->name }}</option>
                                         @endforeach
                                     @endif
                                     </select>
@@ -192,31 +192,31 @@
                                 <div class="mb-3">
                                     <label for="category">Sub category</label>
                                     <select name="sub_category" id="sub_category" class="form-control">
-                                        <option value="">Select a Sub Category</option>   
+                                        <option value="">Select a Sub Category</option>
                                         @if ($subCategories->isNotEmpty())
                                             @foreach ($subCategories as $subCategory)
-                                            <option {{ ($product->sub_category_id == $subCategory->id) ? 'selected' : '' }} value="{{ $subCategory->id }}">{{ $subCategory->name }}</option>                                        
+                                            <option {{ ($product->sub_category_id == $subCategory->id) ? 'selected' : '' }} value="{{ $subCategory->id }}">{{ $subCategory->name }}</option>
                                             @endforeach
                                         @endif
                                     </select>
                                 </div>
                             </div>
-                        </div> 
+                        </div>
                         <div class="card mb-3">
-                            <div class="card-body">	
+                            <div class="card-body">
                                 <h2 class="h4 mb-3">Product brand</h2>
                                 <div class="mb-3">
                                     <select name="brand" id="brand" class="form-control">
-                                        <option value="">Select a brand</option>                                        
+                                        <option value="">Select a brand</option>
                                         @if ($brands->isNotEmpty())
                                             @foreach ($brands as $brand)
-                                            <option {{ ($product->brand_id == $brand->id) ? 'selected' : '' }}  value="{{ $brand->id }}">{{ $brand->name }}</option>                                        
+                                            <option {{ ($product->brand_id == $brand->id) ? 'selected' : '' }}  value="{{ $brand->id }}">{{ $brand->name }}</option>
                                             @endforeach
                                         @endif
                                     </select>
                                 </div>
                             </div>
-                        </div> 
+                        </div>
                         <div class="card mb-3">
                             <div class="card-body">
                                 <h2 class="h4 mb-3">Featured product</h2>
@@ -229,27 +229,14 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h2 class="h4 mb-3">Vendor</h2>
-                                <div class="mb-3">
-                                    <select name="vendor_id" id="vendor_id" class="form-control">
-                                        <option value="">Platform (Unassigned)</option>
-                                        @foreach ($vendors as $vendor)
-                                        <option {{ ($product->vendor_id == $vendor->id) ? 'selected' : '' }} value="{{ $vendor->id }}">{{ $vendor->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <p class="error"></p>
-                                </div>
-                            </div>
-                        </div>
+
 
                     </div>
                 </div>
-                
+
                 <div class="pb-5 pt-3">
                     <button type="submit" class="btn btn-primary">Update</button>
-                    <a href="{{ route('products.index') }}" class="btn btn-outline-dark ml-3">Cancel</a>
+                    <a href="{{ route('vendor.products.index') }}" class="btn btn-outline-dark ml-3">Cancel</a>
                 </div>
             </div>
         </form>
@@ -262,7 +249,7 @@
     <script>
         $('.related-product').select2({
             ajax: {
-                url: '{{ route("products.getProducts") }}',
+                url: '{{ route("vendor.products.getProducts") }}',
                 dataType: 'json',
                 tags: true,
                 multiple: true,
@@ -273,12 +260,12 @@
                     };
                 }
             }
-        }); 
+        });
         $("#title").change(function(){
             element = $(this);
             $("button[type=submit]").prop('disabled',true);
             $.ajax({
-                url: '{{ route("getSlug") }}',
+                url: '{{ route("vendor.getSlug") }}',
                 type: 'get',
                 data: {title: element.val()},
                 dataType: 'json',
@@ -297,7 +284,7 @@
             $("button[type='submit']").prop('disabled',true);
 
             $.ajax({
-                url: '{{ route("products.update",$product->id) }}',
+                url: '{{ route("vendor.products.update",$product->id) }}',
                 type: 'put',
                 data: formArray,
                 dataType: 'json',
@@ -308,7 +295,7 @@
                         $(".error").removeClass('invalid-feedback').html('');
                         $("input[type='text'], select, input[type='number']").removeClass('is-invalid');
 
-                        window.location.href="{{ route('products.index') }}";
+                        window.location.href="{{ route('vendor.products.index') }}";
                     } else {
                         var errors = response['errors'];
 
@@ -323,7 +310,7 @@
                         });
 
                     }
-                }, 
+                },
                 error: function(){
                     console.log("Something Went Wrong");
                 }
@@ -333,25 +320,25 @@
         $("#category").change(function(){
             var category_id = $(this).val();
             $.ajax({
-                url: '{{ route("product-subcategories.index") }}',
+                url: '{{ route("vendor.product-subcategories.index") }}',
                 type: 'get',
                 data: {category_id:category_id},
                 dataType: 'json',
                 success: function(response) {
                     $("#sub_category").find("option").not(":first").remove();
                     $.each(response["subCategories"],function(key,item){
-                        $("#sub_category").append(`<option value='${item.id}'>${item.name}</option>`);   
+                        $("#sub_category").append(`<option value='${item.id}'>${item.name}</option>`);
                     });
-                }, 
+                },
                 error: function(){
                     console.log("Something Went Wrong");
                 }
             });
         });
 
-        Dropzone.autoDiscover = false;    
-        const dropzone = $("#image").dropzone({ 
-            url:  "{{ route('product-images.update') }}",
+        Dropzone.autoDiscover = false;
+        const dropzone = $("#image").dropzone({
+            url:  "{{ route('vendor.product-images.update') }}",
             maxFiles: 10,
             paramName: 'image',
             params: {'product_id': '{{ $product->id }}'},
@@ -360,9 +347,6 @@
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }, success: function(file, response){
-                //$("#image_id").val(response.image_id);
-                //console.log(response)
-
 
                 var html = `<div class="col-md-3" id="image-row-${response.image_id}"><div class="card">
                     <input type="hidden" name="image_array[]" value="${response.image_id}">
@@ -384,7 +368,7 @@
             $("#image-row-"+id).remove();
             if (confirm("Are you sure you want to delete image?")) {
                 $.ajax({
-                    url: '{{ route("product-images.destroy") }}',
+                    url: '{{ route("vendor.product-images.destroy") }}',
                     type: 'delete',
                     data: {id:id},
                     success: function(response) {

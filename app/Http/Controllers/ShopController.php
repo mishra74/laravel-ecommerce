@@ -18,7 +18,7 @@ class ShopController extends Controller
         $categories = Category::orderBy('name','ASC')->with('sub_category')->where('status',1)->get();
         $brands = Brand::orderBy('name','ASC')->where('status',1)->get();
 
-        $products = Product::where('status',1);
+        $products = Product::where('status',1)->vendorActive();
 
         // Apply Filters here
         if (!empty($categorySlug)) {
@@ -82,7 +82,7 @@ class ShopController extends Controller
 
 
     public function product($slug){
-        $product = Product::where('slug',$slug)->with('product_images')->first();
+        $product = Product::where('slug',$slug)->vendorActive()->with('product_images')->first();
         if ($product == null) {
             abort(404);
         }
@@ -91,7 +91,7 @@ class ShopController extends Controller
         // fetch related products
         if ($product->related_products != '') {
             $productArray = explode(',',$product->related_products);
-            $relatedProducts = Product::whereIn('id',$productArray)->where('status',1)->get();
+            $relatedProducts = Product::whereIn('id',$productArray)->where('status',1)->vendorActive()->get();
         }
 
         $data['product'] = $product;
