@@ -33,6 +33,7 @@ Route::get('/categories', [ProductController::class, 'categories']);
 // Paths match what the frontend (src/lib/api.ts) already calls.
 Route::post('/account/login', [AuthController::class, 'login']);
 Route::post('/account/process-register', [AuthController::class, 'register']);
+Route::post('/account/google-login', [AuthController::class, 'googleLogin']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/account/logout', [AuthController::class, 'logout']);
