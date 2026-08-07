@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PageController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Http\Request;
@@ -64,3 +65,7 @@ Route::post('/coupons/apply', [CouponController::class, 'apply']);
 
 // ---- Contact form ----
 Route::post('/contact', [ContactController::class, 'store']);
+
+// ---- CMS pages (Privacy Policy, Returns, Terms, etc. — admin-managed) ----
+Route::get('/pages', [PageController::class, 'index']);
+Route::get('/pages/{slug}', [PageController::class, 'show']);
