@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PageController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Http\Request;
@@ -61,7 +62,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // ---- Checkout (public — supports guest checkout; recognizes a logged-in user if a Bearer token is present) ----
 Route::post('/orders', [OrderController::class, 'store']);
+Route::get('/orders/{order}/confirmation', [OrderController::class, 'confirmation']);
 Route::post('/coupons/apply', [CouponController::class, 'apply']);
+
+// ---- Razorpay online payment (public — same guest/logged-in support as /orders) ----
+Route::post('/payments/razorpay/checkout', [PaymentController::class, 'checkout']);
+Route::get('/payments/razorpay/callback', [PaymentController::class, 'callback']);
 
 // ---- Contact form ----
 Route::post('/contact', [ContactController::class, 'store']);

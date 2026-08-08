@@ -35,4 +35,11 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
     ],
 
+    'razorpay' => [
+        'key' => env('RAZORPAY_KEY_ID'),
+        'secret' => env('RAZORPAY_KEY_SECRET'),
+    ],
+
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3001'),
+
 ];

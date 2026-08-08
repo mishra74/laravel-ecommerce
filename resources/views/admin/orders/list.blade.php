@@ -49,6 +49,7 @@
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Status</th>
+                            <th>Payment</th>
                             <th>Amount</th>
                             <th>Date Purchased</th>
                         </tr>
@@ -71,8 +72,16 @@
                                     @else
                                     <span class="badge bg-danger">Cancelled</span> 
                                     @endif
-                                </td>    
-                                <td>₹{{ number_format($order->grand_total,2) }}</td>     
+                                </td>
+                                <td>
+                                    {{ $order->payment_method === 'online' ? 'Online' : 'COD' }}
+                                    @if ($order->payment_status == 'paid')
+                                        <span class="badge bg-success">Paid</span>
+                                    @else
+                                        <span class="badge bg-warning">Not Paid</span>
+                                    @endif
+                                </td>
+                                <td>₹{{ number_format($order->grand_total,2) }}</td>
                                 <td>
                                     {{ \Carbon\Carbon::parse($order->created_at)->format('d M, Y') }}    
                                 </td>                       
@@ -80,7 +89,7 @@
                            @endforeach 
                         @else
                             <tr>
-                               <td colspan="5">Records Not Found</td> 
+                               <td colspan="8">Records Not Found</td>
                             </tr>
                         @endif
                     </tbody>

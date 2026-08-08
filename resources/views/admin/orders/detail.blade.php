@@ -59,6 +59,13 @@
                                    <span class="text-danger">Cancelled</span>
                                    @endif
                                 <br>
+                                <b>Payment:</b> {{ $order->payment_method === 'online' ? 'Online (Razorpay)' : 'Cash on Delivery' }}
+                                @if ($order->payment_status == 'paid')
+                                    <span class="text-success">Paid</span>
+                                @else
+                                    <span class="text-danger">Not Paid</span>
+                                @endif
+                                <br>
                             </div>
                         </div>
                     </div>
