@@ -70,7 +70,17 @@
                                     <option {{ ($category->showHome == 'No') ? 'selected' : '' }}  value="No">No</option>
                                 </select>
                             </div>
-                        </div>								
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="collection">Collection</label>
+                                <select name="collection" id="collection" class="form-control">
+                                    <option {{ empty($category->collection) ? 'selected' : '' }} value="">Not set</option>
+                                    <option {{ ($category->collection == 'party-wear') ? 'selected' : '' }} value="party-wear">Party Wear</option>
+                                    <option {{ ($category->collection == 'casual-wear') ? 'selected' : '' }} value="casual-wear">Casual Wear</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>							
             </div>

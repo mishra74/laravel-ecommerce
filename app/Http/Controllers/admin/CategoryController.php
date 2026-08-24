@@ -41,6 +41,7 @@ class CategoryController extends Controller
             $category->slug = $request->slug;
             $category->status = $request->status;
             $category->showHome = $request->showHome;
+            $category->collection = $request->collection ?: null;
             $category->save();
 
 
@@ -118,6 +119,7 @@ class CategoryController extends Controller
             $category->slug = $request->slug;
             $category->status = $request->status;
             $category->showHome = $request->showHome;
+            $category->collection = $request->collection ?: null;
             $category->save();
 
             $oldImage =  $category->image;

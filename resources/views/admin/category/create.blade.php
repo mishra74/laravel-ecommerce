@@ -65,7 +65,17 @@
                                     <option value="No">No</option>
                                 </select>
                             </div>
-                        </div>									
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="collection">Collection</label>
+                                <select name="collection" id="collection" class="form-control">
+                                    <option value="">Not set</option>
+                                    <option value="party-wear">Party Wear</option>
+                                    <option value="casual-wear">Casual Wear</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>							
             </div>

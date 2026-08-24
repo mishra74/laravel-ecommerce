@@ -48,6 +48,7 @@
                             <th width="60">ID</th>
                             <th>Name</th>
                             <th>Slug</th>
+                            <th width="120">Collection</th>
                             <th width="100">Status</th>
                             <th width="100">Action</th>
                         </tr>
@@ -59,6 +60,15 @@
                                 <td>{{ $category->id }}</td>
                                 <td>{{ $category->name }}</td>
                                 <td>{{ $category->slug }}</td>
+                                <td>
+                                    @if ($category->collection == 'party-wear')
+                                        <span class="badge bg-info">Party Wear</span>
+                                    @elseif ($category->collection == 'casual-wear')
+                                        <span class="badge bg-secondary">Casual Wear</span>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
                                 <td>
                                     @if($category->status == 1)
                                     <svg class="text-success-500 h-6 w-6 text-success" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
@@ -86,7 +96,7 @@
                            @endforeach 
                         @else
                             <tr>
-                               <td colspan="5">Records Not Found</td> 
+                               <td colspan="6">Records Not Found</td>
                             </tr>
                         @endif
                     </tbody>
