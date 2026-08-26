@@ -3,6 +3,11 @@
 /public/build
 /public/hot
 /public/storage
+# Uploaded product/category images and upload scratch files — these are
+# user-generated content that lands directly on the server's filesystem
+# via the admin panel, not through git, and shouldn't be committed.
+/public/uploads
+/public/temp
 /storage/*.key
 /vendor
 .env
