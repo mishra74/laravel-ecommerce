@@ -13,6 +13,10 @@ class Product extends Model
         return $this->hasMany(ProductImage::class);
     }
 
+    public function sizes() {
+        return $this->hasMany(ProductSize::class);
+    }
+
     public function vendor() {
         return $this->belongsTo(User::class, 'vendor_id');
     }

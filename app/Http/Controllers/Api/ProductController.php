@@ -11,7 +11,7 @@ class ProductController extends Controller
 {
     private function baseQuery()
     {
-        return Product::with('product_images')
+        return Product::with('product_images', 'sizes')
             ->where('status', 1)
             ->vendorActive();
     }

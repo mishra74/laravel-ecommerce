@@ -82,8 +82,8 @@
                             <tbody>
                                 @foreach ($orderItems as $item)
                                  <tr>
-                                    <td>{{ $item->name }}</td>
-                                    <td>₹{{ number_format($item->price,2) }}</td>                                        
+                                    <td>{{ $item->name }}{{ $item->size ? ' — Size ' . $item->size : '' }}</td>
+                                    <td>₹{{ number_format($item->price,2) }}</td>
                                     <td>{{ $item->qty }}</td>
                                     <td>₹{{ number_format($item->total,2) }}</td>
                                 </tr>   

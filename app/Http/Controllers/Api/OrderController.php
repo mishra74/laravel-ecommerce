@@ -65,7 +65,7 @@ class OrderController extends Controller
             'shipping.state' => 'required_without:address_id',
             'shipping.pincode' => 'required_without:address_id',
             'items' => 'required|array|min:1',
-            'items.*.sku' => 'required|exists:products,sku',
+            'items.*.sku' => ['required', $this->orderBuilder->skuExistsRule()],
             'items.*.qty' => 'required|integer|min:1',
             'coupon_code' => 'nullable|string',
             'notes' => 'nullable|string',

@@ -8,6 +8,7 @@ use App\Models\DiscountCoupon;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\ProductSize;
 use App\Models\ShippingCharge;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -26,6 +27,44 @@ class OrderBuilder
     const DEFAULT_COUNTRY_ID = 100; // India
     const FREE_SHIPPING_THRESHOLD = 5000;
     const FALLBACK_SHIPPING = 150; // used only if no ShippingCharge row exists for the country
+
+    /**
+     * A cart line's sku is either a plain product sku (unsized products) or
+     * a size-specific sku like "sku-7-M" (see ProductSize) — this checks
+     * both tables, since Laravel's built-in exists:products,sku rule only
+     * knows about the first case.
+     */
+    public function skuExistsRule(): \Closure
+    {
+        return function ($attribute, $value, $fail) {
+            if (!Product::where('sku', $value)->exists() && !ProductSize::where('sku', $value)->exists()) {
+                $fail('One of the items in your cart is no longer available.');
+            }
+        };
+    }
+
+    /**
+     * Resolves a cart line's sku to its product + the size row it refers to
+     * (if any). Returns null if nothing matches an active, vendor-active
+     * product.
+     */
+    private function resolveLine(string $sku): ?array
+    {
+        $productSize = ProductSize::where('sku', $sku)->first();
+
+        if ($productSize) {
+            $product = Product::where('id', $productSize->product_id)
+                ->where('status', 1)
+                ->vendorActive()
+                ->first();
+
+            return $product ? ['product' => $product, 'productSize' => $productSize] : null;
+        }
+
+        $product = Product::where('sku', $sku)->where('status', 1)->vendorActive()->first();
+
+        return $product ? ['product' => $product, 'productSize' => null] : null;
+    }
 
     public function resolveUser(Request $request): User
     {
@@ -84,13 +123,22 @@ class OrderBuilder
         $subtotal = 0;
 
         foreach ($request->items as $item) {
-            $product = Product::where('sku', $item['sku'])->where('status', 1)->vendorActive()->first();
+            $resolved = $this->resolveLine($item['sku']);
 
-            if (!$product) {
+            if (!$resolved) {
                 throw new OrderBuildException('One of the items in your cart is no longer available.', 422);
             }
 
-            if ($product->track_qty === 'Yes' && $product->qty !== null && $product->qty < $item['qty']) {
+            $product = $resolved['product'];
+            $productSize = $resolved['productSize'];
+
+            // Stock lives on the size row when the product has sizes,
+            // otherwise on the product itself — same as before sizes existed.
+            if ($productSize) {
+                if ($product->track_qty === 'Yes' && $productSize->qty < $item['qty']) {
+                    throw new OrderBuildException("\"{$product->title}\" ({$productSize->size}) doesn't have enough stock left.", 422);
+                }
+            } elseif ($product->track_qty === 'Yes' && $product->qty !== null && $product->qty < $item['qty']) {
                 throw new OrderBuildException("\"{$product->title}\" doesn't have enough stock left.", 422);
             }
 
@@ -99,6 +147,7 @@ class OrderBuilder
 
             $lineItems[] = [
                 'product' => $product,
+                'productSize' => $productSize,
                 'qty' => $item['qty'],
                 'price' => $product->price,
                 'total' => $lineTotal,
@@ -181,12 +230,19 @@ class OrderBuilder
                 $orderItem->order_id = $order->id;
                 $orderItem->product_id = $line['product']->id;
                 $orderItem->name = $line['product']->title;
+                $orderItem->size = $line['productSize']->size ?? null;
                 $orderItem->qty = $line['qty'];
                 $orderItem->price = $line['price'];
                 $orderItem->total = $line['total'];
                 $orderItem->save();
 
-                if ($decrementStock && $line['product']->track_qty === 'Yes' && $line['product']->qty !== null) {
+                if (!$decrementStock || $line['product']->track_qty !== 'Yes') {
+                    continue;
+                }
+
+                if ($line['productSize']) {
+                    $line['productSize']->decrement('qty', $line['qty']);
+                } elseif ($line['product']->qty !== null) {
                     $line['product']->decrement('qty', $line['qty']);
                 }
             }
@@ -205,7 +261,15 @@ class OrderBuilder
         DB::transaction(function () use ($order) {
             foreach ($order->items as $item) {
                 $product = Product::find($item->product_id);
-                if ($product && $product->track_qty === 'Yes' && $product->qty !== null) {
+                if (!$product || $product->track_qty !== 'Yes') {
+                    continue;
+                }
+
+                if ($item->size) {
+                    ProductSize::where('product_id', $product->id)
+                        ->where('size', $item->size)
+                        ->decrement('qty', $item->qty);
+                } elseif ($product->qty !== null) {
                     $product->decrement('qty', $item->qty);
                 }
             }

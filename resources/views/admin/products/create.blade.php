@@ -132,7 +132,27 @@
                         </div>
 
                         <div class="card mb-3">
-                            <div class="card-body">	
+                            <div class="card-body">
+                                <h2 class="h4 mb-3">Sizes &amp; Stock</h2>
+                                <p class="text-muted">Leave all unchecked for a single "Free Size" product — no size selector will be shown to customers. Check a size to track its own stock separately.</p>
+                                <div class="row">
+                                    @foreach (['S','M','L','XL','XXL','XXXL'] as $sizeOption)
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <div class="custom-control custom-checkbox">
+                                                <input class="custom-control-input size-toggle" type="checkbox" id="size_{{ $sizeOption }}" name="size_enabled[]" value="{{ $sizeOption }}">
+                                                <label for="size_{{ $sizeOption }}" class="custom-control-label">{{ $sizeOption }}</label>
+                                            </div>
+                                            <input type="number" min="0" class="form-control mt-2" name="size_qty[{{ $sizeOption }}]" id="size_qty_{{ $sizeOption }}" placeholder="Qty" disabled>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-body">
                                 <h2 class="h4 mb-3">Related Products</h2>
                                 <div class="mb-3">
                                     <select multiple class="related-product w-100" name="related_products[]" id="related_products">                                        
@@ -249,6 +269,12 @@
 
 @section('customJs')
     <script>
+        $('.size-toggle').change(function () {
+            var qtyInput = $('#size_qty_' + this.value);
+            qtyInput.prop('disabled', !this.checked);
+            if (!this.checked) qtyInput.val('');
+        });
+
         $('.related-product').select2({
             ajax: {
                 url: '{{ route("products.getProducts") }}',

@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductSize;
 use App\Models\SubCategory;
 use App\Models\TempImage;
 use App\Models\User;
@@ -98,6 +99,7 @@ class ProductController extends Controller
             $product->related_products = (!empty($request->related_products)) ? implode(',',$request->related_products) : '';
             $product->save();
 
+            $this->syncSizes($product, $request);
 
             // Save Gallery Pics
             if(!empty($request->image_array)) {
@@ -161,8 +163,10 @@ class ProductController extends Controller
             return redirect()->route('products.index')->with('error','Product not found');
         }
 
-        // Fetch Product Images 
+        // Fetch Product Images
         $productImages = ProductImage::where('product_id',$product->id)->get();
+
+        $productSizes = ProductSize::where('product_id',$product->id)->get()->keyBy('size');
 
         $subCategories = SubCategory::where('category_id',$product->category_id)->get();
 
@@ -182,6 +186,7 @@ class ProductController extends Controller
         $data['product'] = $product;
         $data['subCategories'] = $subCategories;
         $data['productImages'] = $productImages;
+        $data['productSizes'] = $productSizes;
         $data['relatedProducts'] = $relatedProducts;
         $data['vendors'] = User::where('role',User::ROLE_VENDOR)->orderBy('name','ASC')->get();
 
@@ -234,6 +239,7 @@ class ProductController extends Controller
             $product->related_products = (!empty($request->related_products)) ? implode(',',$request->related_products) : '';
             $product->save();
 
+            $this->syncSizes($product, $request);
 
             // Save Gallery Pics
             $request->session()->flash('success','Product updated successfully');
@@ -249,6 +255,40 @@ class ProductController extends Controller
                 'errors' => $validator->errors()
             ]);
         }
+    }
+
+    /**
+     * Creates/updates/removes this product's ProductSize rows to match the
+     * checked sizes + qty inputs on the form. A product with no sizes
+     * checked keeps behaving exactly as before (single "Free Size", stock
+     * tracked on the product itself) — sizes are opt-in per product.
+     */
+    private function syncSizes(Product $product, Request $request): void
+    {
+        $enabled = $request->input('size_enabled', []);
+        $qtyInput = $request->input('size_qty', []);
+
+        $keep = [];
+
+        foreach ($enabled as $size) {
+            $qty = (int) ($qtyInput[$size] ?? 0);
+
+            $productSize = ProductSize::firstOrNew([
+                'product_id' => $product->id,
+                'size' => $size,
+            ]);
+            $productSize->qty = $qty;
+            if (!$productSize->exists) {
+                $productSize->sku = $product->sku . '-' . $size;
+            }
+            $productSize->save();
+
+            $keep[] = $productSize->id;
+        }
+
+        ProductSize::where('product_id', $product->id)
+            ->whereNotIn('id', $keep)
+            ->delete();
     }
 
     public function destroy($id, Request $request){
