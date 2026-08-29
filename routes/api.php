@@ -62,12 +62,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // ---- Checkout (public — supports guest checkout; recognizes a logged-in user if a Bearer token is present) ----
 Route::post('/orders', [OrderController::class, 'store']);
-Route::get('/orders/{order}/confirmation', [OrderController::class, 'confirmation']);
 Route::post('/coupons/apply', [CouponController::class, 'apply']);
 
-// ---- Razorpay online payment (public — same guest/logged-in support as /orders) ----
-Route::post('/payments/razorpay/checkout', [PaymentController::class, 'checkout']);
-Route::get('/payments/razorpay/callback', [PaymentController::class, 'callback']);
+// ---- Razorpay Standard Checkout (public — same guest/logged-in support as /orders) ----
+Route::post('/payments/razorpay/order', [PaymentController::class, 'order']);
+Route::post('/payments/razorpay/verify', [PaymentController::class, 'verify']);
 
 // ---- Contact form ----
 Route::post('/contact', [ContactController::class, 'store']);

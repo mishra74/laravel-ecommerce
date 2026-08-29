@@ -37,22 +37,6 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * Public, no-PII order summary. Used by the frontend's post-Razorpay
-     * confirmation page, which guests (no bearer token) land on after a full
-     * browser redirect through Razorpay's hosted checkout.
-     */
-    public function confirmation(Order $order)
-    {
-        return response()->json([
-            'status' => true,
-            'order_number' => 'WE24-' . str_pad($order->id, 8, '0', STR_PAD_LEFT),
-            'grand_total' => $order->grand_total,
-            'payment_status' => $order->payment_status,
-            'payment_method' => $order->payment_method,
-        ]);
-    }
-
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [

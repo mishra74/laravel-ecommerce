@@ -192,7 +192,7 @@ class OrderBuilder
      * Persists the order + order items. Stock is only decremented immediately
      * when $decrementStock is true (COD — a firm commitment at order time).
      * For online payments, stock is decremented separately once payment is
-     * actually confirmed (see PaymentController::callback), so an abandoned
+     * actually confirmed (see PaymentController::verify), so an abandoned
      * Razorpay checkout never holds stock hostage.
      */
     public function persist(User $user, Request $request, array $built, array $paymentFields, bool $decrementStock): Order
@@ -254,7 +254,7 @@ class OrderBuilder
     /**
      * Decrements stock for a previously-persisted order whose items were not
      * decremented at creation time (the online-payment path). Called once,
-     * guarded by the order's payment_status, from PaymentController::callback.
+     * guarded by the order's payment_status, from PaymentController::verify.
      */
     public function decrementStockForOrder(Order $order): void
     {

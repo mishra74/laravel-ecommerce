@@ -14,17 +14,18 @@ use Razorpay\Api\Errors\SignatureVerificationError;
 
 class PaymentController extends Controller
 {
+    const MIN_AMOUNT_PAISE = 100; // Razorpay's own minimum order amount (₹1)
+
     public function __construct(protected OrderBuilder $orderBuilder)
     {
     }
 
     /**
      * Creates the order (unpaid, stock not yet decremented) and a Razorpay
-     * Payment Link for its grand total, then hands back the link URL so the
-     * frontend can send the browser there — a real redirect to Razorpay's
-     * hosted checkout, not an embedded widget.
+     * order for its grand total, so the frontend can open the Standard
+     * Checkout modal on-page — no redirect away from the site.
      */
-    public function checkout(Request $request)
+    public function order(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'contact_email' => 'required|email',
@@ -58,8 +59,10 @@ class PaymentController extends Controller
             return response()->json(['status' => false, 'message' => $e->getMessage()], $e->status);
         }
 
-        if ($built['grandTotal'] <= 0) {
-            return response()->json(['status' => false, 'message' => 'Order total must be greater than zero to pay online.'], 422);
+        $amountPaise = (int) round($built['grandTotal'] * 100);
+
+        if ($amountPaise < self::MIN_AMOUNT_PAISE) {
+            return response()->json(['status' => false, 'message' => 'Order total is too small to pay online.'], 422);
         }
 
         $order = $this->orderBuilder->persist($user, $request, $built, [
@@ -70,85 +73,97 @@ class PaymentController extends Controller
         $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
 
         try {
-            $paymentLink = $api->paymentLink->create([
-                'amount' => (int) round($order->grand_total * 100),
+            $rzpOrder = $api->order->create([
+                'amount' => $amountPaise,
                 'currency' => 'INR',
-                'accept_partial' => false,
-                'description' => "WHITE ELEGANCE 24 — Order #{$order->id}",
-                'customer' => [
-                    'name' => trim($order->first_name . ' ' . $order->last_name) ?: 'Customer',
-                    'email' => $order->email,
-                    'contact' => $order->mobile,
-                ],
-                'notify' => ['sms' => false, 'email' => false],
-                'reminder_enable' => false,
-                'reference_id' => (string) $order->id,
-                'callback_url' => url('/api/payments/razorpay/callback'),
-                'callback_method' => 'get',
+                'receipt' => 'order_' . $order->id,
+                'notes' => ['order_id' => (string) $order->id],
             ]);
         } catch (\Throwable $e) {
-            Log::error('Razorpay payment link creation failed', ['order_id' => $order->id, 'error' => $e->getMessage()]);
+            Log::error('Razorpay order creation failed', ['order_id' => $order->id, 'error' => $e->getMessage()]);
             return response()->json(['status' => false, 'message' => 'Unable to start online payment right now. Please try Cash on Delivery.'], 502);
         }
 
-        $order->razorpay_payment_link_id = $paymentLink['id'];
+        $order->razorpay_order_id = $rzpOrder['id'];
         $order->save();
 
         return response()->json([
             'status' => true,
             'order_id' => $order->id,
-            'redirect_url' => $paymentLink['short_url'],
+            'razorpay_order_id' => $rzpOrder['id'],
+            'razorpay_key' => config('services.razorpay.key'),
+            'amount' => $amountPaise,
+            'currency' => 'INR',
+            'name' => config('app.name'),
+            'description' => "Order #{$order->id}",
+            'prefill' => [
+                'name' => trim($order->first_name . ' ' . $order->last_name),
+                'email' => $order->email,
+                'contact' => $order->mobile,
+            ],
         ]);
     }
 
     /**
-     * Razorpay redirects the customer's browser here after a Payment Link
-     * attempt (success or failure) — this is a GET hit by the browser, not a
-     * server-to-server webhook. Verifies the signature before trusting
-     * anything in the query string, then bounces to the frontend.
+     * Verifies the Standard Checkout signature server-side before an order
+     * is ever marked paid. Called by the modal's success handler with the
+     * three fields Razorpay hands back to the browser.
      */
-    public function callback(Request $request)
+    public function verify(Request $request)
     {
-        $frontendUrl = rtrim(config('services.frontend_url'), '/');
-        $referenceId = $request->query('razorpay_payment_link_reference_id');
-        $order = $referenceId ? Order::find($referenceId) : null;
+        $validator = Validator::make($request->all(), [
+            'order_id' => 'required|integer|exists:orders,id',
+            'razorpay_order_id' => 'required|string',
+            'razorpay_payment_id' => 'required|string',
+            'razorpay_signature' => 'required|string',
+        ]);
 
-        if (!$order) {
-            return redirect("{$frontendUrl}/checkout?payment=failed");
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 400);
         }
 
-        // Idempotency guard — Razorpay/the browser can hit this URL more than
-        // once (refresh, back button); never re-verify or decrement stock twice.
+        $order = Order::find($request->order_id);
+
+        if (!$order || $order->razorpay_order_id !== $request->razorpay_order_id) {
+            return response()->json(['status' => false, 'message' => 'Order not found.'], 400);
+        }
+
+        // Idempotency guard — the modal's handler could theoretically fire
+        // more than once; never re-verify or decrement stock twice.
         if ($order->payment_status === 'paid') {
-            return redirect("{$frontendUrl}/order-confirmation?order_id={$order->id}&payment=success");
+            return response()->json([
+                'status' => true,
+                'order_id' => $order->id,
+                'order_number' => 'WE24-' . str_pad($order->id, 8, '0', STR_PAD_LEFT),
+                'grand_total' => $order->grand_total,
+            ]);
         }
 
         $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
 
         try {
-            $api->utility->verifyPaymentLinkSignature($request->only([
-                'razorpay_payment_id',
-                'razorpay_payment_link_id',
-                'razorpay_payment_link_reference_id',
-                'razorpay_payment_link_status',
-                'razorpay_signature',
-            ]));
+            $api->utility->verifyPaymentSignature([
+                'razorpay_order_id' => $request->razorpay_order_id,
+                'razorpay_payment_id' => $request->razorpay_payment_id,
+                'razorpay_signature' => $request->razorpay_signature,
+            ]);
         } catch (SignatureVerificationError $e) {
-            Log::warning('Razorpay callback signature verification failed', ['order_id' => $order->id]);
-            return redirect("{$frontendUrl}/checkout?payment=failed&order_id={$order->id}");
-        }
-
-        if ($request->query('razorpay_payment_link_status') !== 'paid') {
-            return redirect("{$frontendUrl}/checkout?payment=failed&order_id={$order->id}");
+            Log::warning('Razorpay signature verification failed', ['order_id' => $order->id]);
+            return response()->json(['status' => false, 'message' => 'Payment verification failed.'], 400);
         }
 
         $order->payment_status = 'paid';
-        $order->razorpay_payment_id = $request->query('razorpay_payment_id');
-        $order->razorpay_signature = $request->query('razorpay_signature');
+        $order->razorpay_payment_id = $request->razorpay_payment_id;
+        $order->razorpay_signature = $request->razorpay_signature;
         $order->save();
 
         $this->orderBuilder->decrementStockForOrder($order);
 
-        return redirect("{$frontendUrl}/order-confirmation?order_id={$order->id}&payment=success");
+        return response()->json([
+            'status' => true,
+            'order_id' => $order->id,
+            'order_number' => 'WE24-' . str_pad($order->id, 8, '0', STR_PAD_LEFT),
+            'grand_total' => $order->grand_total,
+        ]);
     }
 }
