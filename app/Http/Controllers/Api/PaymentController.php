@@ -119,7 +119,15 @@ class PaymentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 400);
+            Log::warning('Razorpay verify request failed validation', [
+                'errors' => $validator->errors()->toArray(),
+                'payload' => $request->except(['razorpay_signature']),
+            ]);
+            return response()->json([
+                'status' => false,
+                'message' => 'We received an incomplete payment confirmation. Please contact us with your order details.',
+                'errors' => $validator->errors(),
+            ], 400);
         }
 
         $order = Order::find($request->order_id);
