@@ -278,7 +278,7 @@ class ProductController extends Controller
                 'size' => $size,
             ]);
             $productSize->qty = $qty;
-            if (!$productSize->exists) {
+            if (empty($productSize->sku)) {
                 $productSize->sku = $product->sku . '-' . $size;
             }
             $productSize->save();
