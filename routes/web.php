@@ -154,6 +154,7 @@ Route::group(['prefix' => 'admin'],function(){
         Route::put('/products/{product}',[ProductController::class,'update'])->name('products.update');
         Route::delete('/products/{product}',[ProductController::class,'destroy'])->name('products.delete');
         Route::get('/get-products',[ProductController::class,'getProducts'])->name('products.getProducts');
+        Route::get('/products/fix-size-skus',[ProductController::class,'fixSizeSkus'])->name('products.fixSizeSkus');
 
 
         Route::get('/product-subcategories',[ProductSubCategoryController::class,'index'])->name('product-subcategories.index');

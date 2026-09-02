@@ -258,6 +258,34 @@ class ProductController extends Controller
     }
 
     /**
+     * One-click repair for ProductSize rows saved before syncSizes() backfilled
+     * sku on every save (it used to only set sku on first creation), so a row
+     * saved with the old logic stays permanently null otherwise — which blocks
+     * checkout with "The items.0.sku field is required." Same fix as the
+     * 2026_09_02_000000_backfill_missing_product_size_skus migration, exposed
+     * here as an admin-triggerable route for hosts without CLI/SSH access to
+     * run `php artisan migrate`. Safe to run more than once.
+     */
+    public function fixSizeSkus(Request $request)
+    {
+        $broken = ProductSize::whereNull('sku')->orWhere('sku', '')->with('product')->get();
+
+        $fixed = 0;
+        foreach ($broken as $productSize) {
+            if (!$productSize->product) {
+                continue;
+            }
+            $productSize->sku = $productSize->product->sku . '-' . $productSize->size;
+            $productSize->save();
+            $fixed++;
+        }
+
+        $request->session()->flash('success', "Fixed {$fixed} product size(s) with a missing SKU.");
+
+        return redirect()->route('products.index');
+    }
+
+    /**
      * Creates/updates/removes this product's ProductSize rows to match the
      * checked sizes + qty inputs on the form. A product with no sizes
      * checked keeps behaving exactly as before (single "Free Size", stock
