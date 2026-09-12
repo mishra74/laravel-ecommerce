@@ -174,4 +174,55 @@ class PaymentController extends Controller
             'grand_total' => $order->grand_total,
         ]);
     }
+
+    /**
+     * Server-to-server backstop for payment confirmation. verify() above
+     * depends on the customer's browser staying alive long enough to call
+     * it after Razorpay's modal succeeds — if the tab/connection dies right
+     * after paying, that call never happens and the order is stuck "not
+     * paid" despite Razorpay having captured the money. Razorpay calls this
+     * endpoint directly from their servers regardless of the browser, so it
+     * catches that gap. Shares the same idempotency guard as verify() —
+     * whichever of the two fires first wins, the other is a no-op.
+     */
+    public function webhook(Request $request)
+    {
+        $signature = $request->header('X-Razorpay-Signature');
+        $secret = config('services.razorpay.webhook_secret');
+
+        if (!$signature || !$secret) {
+            Log::warning('Razorpay webhook received without a signature header or webhook secret configured');
+            return response()->json(['status' => 'ignored'], 200);
+        }
+
+        try {
+            (new Api(config('services.razorpay.key'), config('services.razorpay.secret')))
+                ->utility->verifyWebhookSignature($request->getContent(), $signature, $secret);
+        } catch (SignatureVerificationError $e) {
+            Log::warning('Razorpay webhook signature verification failed');
+            return response()->json(['status' => 'invalid signature'], 400);
+        }
+
+        if ($request->input('event') !== 'payment.captured') {
+            return response()->json(['status' => 'ignored']);
+        }
+
+        $payment = $request->input('payload.payment.entity', []);
+        $order = Order::where('razorpay_order_id', $payment['order_id'] ?? null)->first();
+
+        if (!$order) {
+            Log::warning('Razorpay webhook: no matching order', ['razorpay_order_id' => $payment['order_id'] ?? null]);
+            return response()->json(['status' => 'ignored']);
+        }
+
+        if ($order->payment_status !== 'paid') {
+            $order->payment_status = 'paid';
+            $order->razorpay_payment_id = $payment['id'] ?? $order->razorpay_payment_id;
+            $order->save();
+
+            $this->orderBuilder->decrementStockForOrder($order);
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
 }

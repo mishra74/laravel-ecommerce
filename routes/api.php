@@ -67,6 +67,7 @@ Route::post('/coupons/apply', [CouponController::class, 'apply']);
 // ---- Razorpay Standard Checkout (public — same guest/logged-in support as /orders) ----
 Route::post('/payments/razorpay/order', [PaymentController::class, 'order']);
 Route::post('/payments/razorpay/verify', [PaymentController::class, 'verify']);
+Route::post('/payments/razorpay/webhook', [PaymentController::class, 'webhook']);
 
 // ---- Contact form ----
 Route::post('/contact', [ContactController::class, 'store']);
