@@ -36,6 +36,10 @@ Route::get('/categories', [ProductController::class, 'categories']);
 Route::post('/account/login', [AuthController::class, 'login']);
 Route::post('/account/process-register', [AuthController::class, 'register']);
 Route::post('/account/google-login', [AuthController::class, 'googleLogin']);
+Route::post('/account/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/account/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/account/forgot-password-otp', [AuthController::class, 'forgotPasswordOtp']);
+Route::post('/account/reset-password-otp', [AuthController::class, 'resetPasswordOtp']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/account/logout', [AuthController::class, 'logout']);
