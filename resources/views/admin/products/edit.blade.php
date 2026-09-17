@@ -167,6 +167,18 @@
 
                         <div class="card mb-3">
                             <div class="card-body">
+                                <h2 class="h4 mb-3">Delivery</h2>
+                                <p class="text-muted">No courier integration yet, so this is set manually. Leave blank to keep showing the "message us on WhatsApp" fallback on the product page.</p>
+                                <div class="mb-3">
+                                    <label for="delivery_days">Estimated Delivery (days)</label>
+                                    <input type="number" min="1" max="60" name="delivery_days" id="delivery_days" class="form-control" placeholder="e.g. 5" value="{{ $product->delivery_days }}" style="max-width: 200px;">
+                                    <p class="error"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-body">
                                 <h2 class="h4 mb-3">Related Products</h2>
                                 <div class="mb-3">
                                     <select multiple class="related-product w-100" name="related_products[]" id="related_products">

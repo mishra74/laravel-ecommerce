@@ -65,6 +65,7 @@ class ProductController extends Controller
             'category' => 'required|numeric',
             'collection' => 'required|in:party-wear,casual-wear',
             'is_featured' => 'required|in:Yes,No',
+            'delivery_days' => 'nullable|integer|min:1|max:60',
         ];
 
 
@@ -95,6 +96,7 @@ class ProductController extends Controller
             $product->brand_id = $request->brand;
             $product->is_featured = $request->is_featured;
             $product->shipping_returns = $request->shipping_returns;
+            $product->delivery_days = $request->delivery_days ?: null;
             $product->short_description = $request->short_description;
             $product->related_products = (!empty($request->related_products)) ? implode(',',$request->related_products) : '';
             $product->save();
@@ -206,6 +208,7 @@ class ProductController extends Controller
             'category' => 'required|numeric',
             'collection' => 'required|in:party-wear,casual-wear',
             'is_featured' => 'required|in:Yes,No',
+            'delivery_days' => 'nullable|integer|min:1|max:60',
         ];
 
 
@@ -235,6 +238,7 @@ class ProductController extends Controller
             $product->brand_id = $request->brand;
             $product->is_featured = $request->is_featured;
             $product->shipping_returns = $request->shipping_returns;
+            $product->delivery_days = $request->delivery_days ?: null;
             $product->short_description = $request->short_description;
             $product->related_products = (!empty($request->related_products)) ? implode(',',$request->related_products) : '';
             $product->save();
