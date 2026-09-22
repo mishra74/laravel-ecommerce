@@ -71,18 +71,4 @@ class User extends Authenticatable
     {
         return $this->role == self::ROLE_CUSTOMER;
     }
-
-    /**
-     * Laravel's default sends a link built with route('password.reset', ...),
-     * a named Blade route that doesn't exist here — the storefront is a
-     * separate Next.js SPA, so the reset link needs to point there instead.
-     */
-    public function sendPasswordResetNotification($token): void
-    {
-        $url = rtrim(config('services.frontend_url'), '/')
-            . '/reset-password?token=' . $token
-            . '&email=' . urlencode($this->email);
-
-        $this->notify(new \App\Notifications\ResetPasswordNotification($url));
-    }
 }
