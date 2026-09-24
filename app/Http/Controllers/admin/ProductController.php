@@ -12,6 +12,7 @@ use App\Models\SubCategory;
 use App\Models\TempImage;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Image;
@@ -262,13 +263,20 @@ class ProductController extends Controller
     }
 
     /**
-     * One-click repair for ProductSize rows saved before syncSizes() backfilled
-     * sku on every save (it used to only set sku on first creation), so a row
-     * saved with the old logic stays permanently null otherwise — which blocks
-     * checkout with "The items.0.sku field is required." Same fix as the
-     * 2026_09_02_000000_backfill_missing_product_size_skus migration, exposed
-     * here as an admin-triggerable route for hosts without CLI/SSH access to
-     * run `php artisan migrate`. Safe to run more than once.
+     * One-click repair for ProductSize rows with a missing sku, PLUS installs
+     * a MySQL trigger that auto-fills sku on every future insert/update —
+     * directly in the database, independent of whatever PHP code is actually
+     * live. This exists because relying on the app code alone (syncSizes())
+     * kept failing in practice: this host has no CLI/SSH access, deploys are
+     * manual file uploads, and more than once an uploaded file silently
+     * didn't include the app-level fix, so new products (especially ones
+     * where the client only configures some sizes, not all six) kept saving
+     * with a blank sku and breaking checkout with "The items.0.sku field is
+     * required." — a live incident the client re-reported every time it
+     * happened. The trigger is the actual fix now; the PHP-level fix in
+     * syncSizes() is only a fast path when it does happen to be deployed.
+     * Idempotent — safe (and cheap) to run more than once, e.g. after every
+     * future file upload as a sanity check.
      */
     public function fixSizeSkus(Request $request)
     {
@@ -284,9 +292,50 @@ class ProductController extends Controller
             $fixed++;
         }
 
-        $request->session()->flash('success', "Fixed {$fixed} product size(s) with a missing SKU.");
+        $this->installSkuAutofillTrigger();
+
+        $request->session()->flash(
+            'success',
+            "Fixed {$fixed} product size(s) with a missing SKU. Database safety net installed — future sizes with no sku will now auto-fill on save, even if this page's code isn't the latest version."
+        );
 
         return redirect()->route('products.index');
+    }
+
+    private function installSkuAutofillTrigger(): void
+    {
+        DB::unprepared('DROP TRIGGER IF EXISTS product_sizes_sku_before_insert');
+        DB::unprepared('DROP TRIGGER IF EXISTS product_sizes_sku_before_update');
+
+        DB::unprepared('
+            CREATE TRIGGER product_sizes_sku_before_insert
+            BEFORE INSERT ON product_sizes
+            FOR EACH ROW
+            BEGIN
+                IF NEW.sku IS NULL OR NEW.sku = \'\' THEN
+                    SET NEW.sku = CONCAT(
+                        (SELECT sku FROM products WHERE id = NEW.product_id),
+                        \'-\',
+                        NEW.size
+                    );
+                END IF;
+            END
+        ');
+
+        DB::unprepared('
+            CREATE TRIGGER product_sizes_sku_before_update
+            BEFORE UPDATE ON product_sizes
+            FOR EACH ROW
+            BEGIN
+                IF NEW.sku IS NULL OR NEW.sku = \'\' THEN
+                    SET NEW.sku = CONCAT(
+                        (SELECT sku FROM products WHERE id = NEW.product_id),
+                        \'-\',
+                        NEW.size
+                    );
+                END IF;
+            END
+        ');
     }
 
     /**
